@@ -12,94 +12,148 @@ public class FrmDevuelta extends JFrame {
 
     JComboBox cmbDenominacion;
     int[] denominaciones = { 100000, 50000, 20000, 10000, 5000, 2000, 1000, 500, 200, 100, 50 };
-    int[] existencias=new int[denominaciones.length];
+    int[] existencias = new int[denominaciones.length];
     JTextField txtExistencia;
+    JTextField txtDevuelta;
+    String[] encabezados = { "Cantidad", "Presentación", "Denominación" };
+    JTable tblDevuelta;
 
-    
     // metodo constructor
 
-    public FrmDevuelta(){
-        setSize(500,400);
+    public FrmDevuelta() {
+        setSize(500, 400);
         setTitle("Calculo Devuelta");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null);
 
-        JLabel lblDenominacion = new JLabel( "Denominación");
+        JLabel lblDenominacion = new JLabel("Denominación");
         lblDenominacion.setBounds(10, 10, 100, 25);
         add(lblDenominacion);
 
         cmbDenominacion = new JComboBox();
-        cmbDenominacion.setBounds(220, 10, 100, 25 );
+        cmbDenominacion.setBounds(220, 10, 100, 25);
         add(cmbDenominacion);
 
         for (int denominacion : denominaciones) {
             cmbDenominacion.addItem(denominacion);
         }
 
-        JButton btnExistencia=new JButton("Actualizar Existencia");
+        JButton btnExistencia = new JButton("Actualizar Existencia");
         btnExistencia.setBounds(10, 40, 200, 25);
         add(btnExistencia);
 
         txtExistencia = new JTextField();
-        txtExistencia.setBounds( 220, 40, 50, 25);
+        txtExistencia.setBounds(220, 40, 50, 25);
         add(txtExistencia);
 
         JLabel lblDevuelta = new JLabel("Valor a Devolver");
         lblDevuelta.setBounds(10, 70, 200, 25);
         add(lblDevuelta);
 
-        JTextField txtDevuelta = new JTextField();
-        txtDevuelta.setBounds( 220, 70, 100, 25);
+        txtDevuelta = new JTextField();
+        txtDevuelta.setBounds(220, 70, 100, 25);
         add(txtDevuelta);
 
-        JButton btnDevuelta=new JButton("Calcular");
+        JButton btnDevuelta = new JButton("Calcular");
         btnDevuelta.setBounds(330, 70, 100, 25);
         add(btnDevuelta);
 
-        JTable tblDevuelta = new JTable();
-        JScrollPane spDevuelta=new JScrollPane(tblDevuelta);
+        tblDevuelta = new JTable();
+        JScrollPane spDevuelta = new JScrollPane(tblDevuelta);
         spDevuelta.setBounds(10, 100, 480, 150);
-        
+
         add(spDevuelta);
 
-        String[] encabezados = { "Cantidad", "Presentación", "Denominación"};
+        String[] encabezados = { "Cantidad", "Presentación", "Denominación" };
 
-        DefaultTableModel dtm=new DefaultTableModel(null, encabezados);
+        DefaultTableModel dtm = new DefaultTableModel(null, encabezados);
         tblDevuelta.setModel(dtm);
 
         // eventos
-        btnExistencia.addActionListener(e ->{
+        btnExistencia.addActionListener(e -> {
             actualizarExistencia();
         });
 
-        btnDevuelta.addActionListener(e ->{
+        btnDevuelta.addActionListener(e -> {
             calcularDevuelta();
         });
 
-        cmbDenominacion.addActionListener(e ->{
+        cmbDenominacion.addActionListener(e -> {
             consultarExistencia();
         });
-
 
     }
 
     private void consultarExistencia() {
-        if(cmbDenominacion.getSelectedIndex() >=0) {
-            //JOptionPane.showMessageDialog(null, denominaciones[cmbDenominacion.getSelectedIndex()]);
+        if (cmbDenominacion.getSelectedIndex() >= 0) {
+            // JOptionPane.showMessageDialog(null,
+            // denominaciones[cmbDenominacion.getSelectedIndex()]);
             txtExistencia.setText(String.valueOf(existencias[cmbDenominacion.getSelectedIndex()]));
         }
     }
 
     private void actualizarExistencia() {
-        //JOptionPane.showMessageDialog(null,"Hizo clic en actualizar Existencia");
-        if(cmbDenominacion.getSelectedIndex() >=0) {
+        // JOptionPane.showMessageDialog(null,"Hizo clic en actualizar Existencia");
+        if (cmbDenominacion.getSelectedIndex() >= 0) {
             existencias[cmbDenominacion.getSelectedIndex()] = Integer.parseInt(txtExistencia.getText());
         }
 
     }
 
     private void calcularDevuelta() {
-        JOptionPane.showMessageDialog(null,"Hizo clic en calcular devuelta");
+        // JOptionPane.showMessageDialog(null,"Hizo clic en calcular devuelta");
+        // Obtener el valor a devolver
+        int devuelta = Integer.parseInt(txtDevuelta.getText());
+
+        int[] cantidadesDevuelta = new int[denominaciones.length];
+
+        for (int i = 0; i < denominaciones.length; i++) {
+            if (devuelta >= denominaciones[i]) {
+                int cantidadNecesaria = (int) (devuelta / denominaciones[i]);
+                /*
+                 * if (existencias[i] >= cantidadNecesaria) {
+                 * cantidadesDevuelta[i] = cantidadNecesaria;
+                 * } else {
+                 * cantidadesDevuelta[i] = existencias[i];
+                 * }
+                 */
+                cantidadesDevuelta[i] = existencias[i] >= cantidadNecesaria ? cantidadNecesaria : existencias[i];
+
+                devuelta -= cantidadesDevuelta[i] * denominaciones[i];
+                existencias[i] -= cantidadesDevuelta[i];
+                if (devuelta == 0) {
+                    break;
+                }
+            }
+
+        }
+        // contar las denominaciones utilizadas
+        int totalDenominaciones = 0;
+        for (int i = 0; i < denominaciones.length; i++) {
+            if (cantidadesDevuelta[i] > 0)
+                totalDenominaciones++;
+        }
+
+        // Calcular la matriz de resultados para mostrar en la tabla
+        String[][] resultado = new String[totalDenominaciones][3];
+        int fila = 0;
+        for (int i = 0; i < denominaciones.length; i++) {
+            if (cantidadesDevuelta[i] > 0) {
+                resultado[fila][0] = String.valueOf(cantidadesDevuelta[i]);
+                resultado[fila][1] = denominaciones[i] > 2000 ? "Billere" : "Moneda";
+                resultado[fila][2] = String.valueOf(denominaciones[i]);
+                fila++;
+            }
+        }
+
+        // Mostrar el resultado en la tabla
+        DefaultTableModel dtm = new DefaultTableModel(resultado, encabezados);
+        tblDevuelta.setModel(dtm);
+
+        if (devuelta > 0) {
+            JOptionPane.showMessageDialog(null, "Queda pendiente $: " + devuelta);
+        }
+
     }
 
 }
